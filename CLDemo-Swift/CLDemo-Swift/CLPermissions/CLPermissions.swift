@@ -41,12 +41,24 @@ class CLPermissions: NSObject {
     }
 
     /// 请求权限
-    class func request(_ permission: CLPermissionType, with сompletionCallback: ((CLAuthorizationStatus) -> Void)? = nil) {
+    static func request(_ permission: CLPermissionType, completion: ((CLAuthorizationStatus) -> Void)? = nil) {
         let manager = getManagerForPermission(permission)
         manager.request { status in
             DispatchQueue.main.async {
-                сompletionCallback?(status)
+                completion?(status)
             }
+        }
+    }
+
+    static func request(_ permissions: [CLPermissionType], completion: ((CLAuthorizationStatus) -> Void)? = nil) {
+        request(permissions[0]) { status in
+            guard status.isAuthorized, permissions.count > 1 else {
+                completion?(status)
+                return
+            }
+            var temp = permissions
+            temp.remove(at: 0)
+            request(temp, completion: completion)
         }
     }
 }
